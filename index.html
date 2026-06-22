@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mari Belajar Haiwan</title>
+    
+    <!-- Tailwind CSS untuk reka bentuk yang responsif dan moden -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tone.js untuk kesan bunyi yang interaktif -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <!-- Font Google: Nunito untuk gaya tulisan kanak-kanak yang mesra -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#bbf7d0 2px, transparent 2px);
+            background-size: 30px 30px;
+            user-select: none; /* Mengelakkan highlight teks semasa drag */
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Animasi */
+        @keyframes bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        .animate-bounce-in {
+            animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Kelas untuk Drag and Drop */
+        .draggable {
+            cursor: grab;
+            touch-action: none; /* Penting untuk touch drag pada mobile */
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .drop-zone-active {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            transform: scale(1.05);
+        }
+
+        .shadow-custom {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-hover:active {
+            transform: translateY(1px);
+        }
+
+        /* Gaya untuk Imej Isyarat */
+        .sign-image {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800">
+
+    <div id="app-container" class="w-full max-w-3xl bg-white rounded-3xl shadow-custom overflow-hidden relative border-4 border-green-400">
+        
+        <!-- Paparan Menu Utama -->
+        <div id="menu-view" class="p-8 md:p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
+            <img src="haiwan.jpg" alt="Isyarat Haiwan" class="sign-image mb-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-green-600 mb-2">Mari Belajar Haiwan</h1>
+            <p class="text-lg text-slate-500 mb-8 font-semibold">Pilih permainan untuk mula belajar!</p>
+            
+            <div class="space-y-4 w-full max-w-md">
+                <button onclick="startQuiz(1)" class="btn-hover w-full py-4 px-6 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-2xl text-2xl font-bold shadow-lg flex items-center justify-center gap-3">
+                    <span>👆</span> Kuiz Seret & Lepas
+                </button>
+                <button onclick="startQuiz(2)" class="btn-hover w-full py-4 px-6 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-2xl text-2xl font-bold shadow-lg flex items-center justify-center gap-3">
+                    <span>🔤</span> Kuiz Isi Tempat Kosong
+                </button>
+            </div>
+        </div>
+
+        <!-- Paparan Kuiz 1: Drag and Drop -->
+        <div id="quiz1-view" class="hidden p-6 md:p-10 flex flex-col min-h-[500px]">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="showMenu()" class="text-slate-400 hover:text-slate-700 font-bold text-lg bg-slate-100 px-4 py-2 rounded-xl transition">
+                    &larr; Kembali
+                </button>
+                <div class="text-xl font-extrabold text-blue-500 bg-blue-50 px-4 py-2 rounded-xl">Kuiz 1: Padankan Haiwan</div>
+                <div id="q1-progress" class="text-lg font-bold text-slate-500">1/6</div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <!-- Gambar Haiwan (Isyarat) -->
+                <img id="q1-image" src="" alt="Isyarat Haiwan" class="sign-image animate-bounce-in">
+                
+                <!-- Drop Zone -->
+                <div id="q1-dropzone" class="drop-zone w-64 h-24 border-4 border-dashed border-slate-300 rounded-2xl bg-slate-50 flex items-center justify-center mb-10 transition-all duration-300">
+                    <span class="text-slate-400 font-semibold text-lg text-center px-4 pointer-events-none">Tarik perkataan ke sini</span>
+                </div>
+
+                <!-- Pilihan Jawapan -->
+                <div id="q1-options" class="flex flex-wrap justify-center gap-4 w-full">
+                    <!-- Pilihan akan dijana secara dinamik melalui JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Paparan Kuiz 2: Isi Tempat Kosong -->
+        <div id="quiz2-view" class="hidden p-6 md:p-10 flex flex-col min-h-[500px]">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="showMenu()" class="text-slate-400 hover:text-slate-700 font-bold text-lg bg-slate-100 px-4 py-2 rounded-xl transition">
+                    &larr; Kembali
+                </button>
+                <div class="text-xl font-extrabold text-purple-500 bg-purple-50 px-4 py-2 rounded-xl">Kuiz 2: Eja Haiwan</div>
+                <div id="q2-progress" class="text-lg font-bold text-slate-500">1/6</div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <!-- Gambar Haiwan (Isyarat) -->
+                <img id="q2-image" src="" alt="Isyarat Haiwan" class="sign-image animate-bounce-in">
+                
+                <!-- Ruang Perkataan (Blanks) -->
+                <div id="q2-word-container" class="flex flex-wrap justify-center gap-2 mb-10">
+                    <!-- Kotak huruf akan dijana secara dinamik -->
+                </div>
+
+                <!-- Pilihan Huruf -->
+                <div class="w-full max-w-md bg-purple-50 p-6 rounded-2xl border-2 border-purple-100">
+                    <p class="text-center text-purple-600 font-bold mb-4">Tarik huruf yang betul ke tempat kosong:</p>
+                    <div id="q2-letter-options" class="flex flex-wrap justify-center gap-3">
+                        <!-- Huruf pilihan akan dijana dinamik -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Maklum Balas (Tahniah / Cuba Lagi) -->
+        <div id="feedback-modal" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0">
+            <div id="modal-content" class="bg-white p-8 rounded-3xl shadow-2xl border-4 border-green-400 text-center transform scale-90 transition-transform duration-300">
+                <div id="modal-icon" class="text-8xl mb-4">🎉</div>
+                <h2 id="modal-title" class="text-4xl font-extrabold text-green-600 mb-2">Tahniah!</h2>
+                <p id="modal-desc" class="text-xl text-slate-600 font-semibold mb-8">Jawapan anda tepat.</p>
+                <button id="modal-btn" class="btn-hover py-3 px-8 bg-green-500 text-white rounded-xl text-2xl font-bold shadow-lg">
+                    Seterusnya &rarr;
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        const haiwanData = [
+            { id: 1, word: 'RUSA', image: 'rusa.jpg', distractors: ['KUDA', 'LEMBU'] },
+            { id: 2, word: 'BADAK', image: 'badak.jpg', distractors: ['GAJAH', 'BUAYA'] },
+            { id: 3, word: 'PELANDUK', image: 'pelanduk.jpg', distractors: ['KUCING', 'ARNAB'] },
+            { id: 4, word: 'TUPAI', image: 'tupai.jpg', distractors: ['TIKUS', 'MUSANG'] },
+            { id: 5, word: 'SINGA', image: 'singa.jpg', distractors: ['HARIMAU', 'KUCING'] },
+            { id: 6, word: 'ORANG UTAN', image: 'orang utan.jpg', distractors: ['MONYET', 'GORILA'] }
+        ];
+
+        // Konfigurasi blanks untuk Kuiz 2 (Indeks mana yang perlu dikosongkan)
+        const q2Config = {
+            'RUSA': [1, 3], // R _ S _ (U, A)
+            'BADAK': [1, 3], // B _ D _ K (A, A)
+            'PELANDUK': [2, 5, 6], // P E _ A N _ _ K (L, D, U)
+            'TUPAI': [1, 3], // T _ P _ I (U, A)
+            'SINGA': [2, 4], // S I _ G _ (N, A)
+            'ORANG UTAN': [1, 6, 8] // O _ A N G   U _ A _ (R, T, N)
+        };
+
+        let currentQuiz = 0; // 1: DragDrop, 2: FillBlank
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let q2BlanksFilled = 0;
+        let q2TotalBlanks = 0;
+
+        // --- AUDIO ENGINE (TONE.JS) ---
+        let synth;
+        let audioInitialized = false;
+
+        async function initAudio() {
+            if (!audioInitialized) {
+                await Tone.start();
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -10;
+                audioInitialized = true;
+            }
+        }
+
+        function playCorrectSound() {
+            if(synth) synth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+        }
+
+        function playWrongSound() {
+            if(synth) synth.triggerAttackRelease(["C3", "Eb3"], "8n");
+        }
+
+        function playPopSound() {
+            if(synth) synth.triggerAttackRelease("C4", "16n");
+        }
+
+        // --- NAVIGASI ---
+        function showMenu() {
+            document.getElementById('menu-view').classList.remove('hidden');
+            document.getElementById('quiz1-view').classList.add('hidden');
+            document.getElementById('quiz2-view').classList.add('hidden');
+        }
+
+        async function startQuiz(quizNum) {
+            await initAudio(); // Wajib untuk play sound pada interaksi pertama
+            currentQuiz = quizNum;
+            currentQuestionIndex = 0;
+            
+            document.getElementById('menu-view').classList.add('hidden');
+            
+            if (quizNum === 1) {
+                document.getElementById('quiz1-view').classList.remove('hidden');
+                loadQuiz1Question();
+            } else {
+                document.getElementById('quiz2-view').classList.remove('hidden');
+                loadQuiz2Question();
+            }
+        }
+
+        // --- FUNGSI PEMBANTU (HELPER) ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function triggerShake(element) {
+            element.classList.add('animate-shake');
+            setTimeout(() => element.classList.remove('animate-shake'), 400);
+        }
+
+        // --- QUIZ 1 LOGIC (Drag & Drop) ---
+        function loadQuiz1Question() {
+            const data = haiwanData[currentQuestionIndex];
+            document.getElementById('q1-progress').innerText = `${currentQuestionIndex + 1}/${haiwanData.length}`;
+            
+            // Set Gambar
+            const imageEl = document.getElementById('q1-image');
+            imageEl.src = data.image;
+            imageEl.alt = data.word;
+            imageEl.classList.remove('animate-bounce-in');
+            void imageEl.offsetWidth; // trigger reflow
+            imageEl.classList.add('animate-bounce-in');
+
+            // Reset Dropzone
+            const dropzone = document.getElementById('q1-dropzone');
+            dropzone.innerHTML = '<span class="text-slate-400 font-semibold text-lg text-center px-4 pointer-events-none">Tarik perkataan ke sini</span>';
+            dropzone.className = 'drop-zone w-64 h-24 border-4 border-dashed border-slate-300 rounded-2xl bg-slate-50 flex items-center justify-center mb-10 transition-all duration-300';
+            dropzone.dataset.expected = data.word;
+
+            // Jana Pilihan Jawapan
+            let options = [data.word, ...data.distractors];
+            options = shuffleArray(options);
+
+            const optionsContainer = document.getElementById('q1-options');
+            optionsContainer.innerHTML = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'draggable bg-white border-2 border-blue-400 text-blue-600 font-bold text-2xl py-3 px-8 rounded-2xl shadow-md hover:bg-blue-50 transition-colors';
+                btn.innerText = opt;
+                btn.dataset.value = opt;
+                btn.dataset.type = 'word';
+                optionsContainer.appendChild(btn);
+            });
+
+            setupDraggables();
+        }
+
+        // --- QUIZ 2 LOGIC (Fill in the Blanks) ---
+        function loadQuiz2Question() {
+            const data = haiwanData[currentQuestionIndex];
+            document.getElementById('q2-progress').innerText = `${currentQuestionIndex + 1}/${haiwanData.length}`;
+            
+            // Set Gambar
+            const imageEl = document.getElementById('q2-image');
+            imageEl.src = data.image;
+            imageEl.alt = data.word;
+            imageEl.classList.remove('animate-bounce-in');
+            void imageEl.offsetWidth; // trigger reflow
+            imageEl.classList.add('animate-bounce-in');
+
+            const word = data.word;
+            const blankIndices = q2Config[word] || [];
+            
+            const wordContainer = document.getElementById('q2-word-container');
+            wordContainer.innerHTML = '';
+            
+            q2BlanksFilled = 0;
+            q2TotalBlanks = blankIndices.length;
+            let missingLetters = [];
+
+            // Bina blok huruf dan tempat kosong
+            for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                const block = document.createElement('div');
+                
+                if (char === ' ') {
+                    // Ruang kosong untuk perkataan dua patah seperti "ORANG UTAN"
+                    block.className = 'w-4 h-16'; 
+                } else if (blankIndices.includes(i)) {
+                    // Tempat Kosong (Drop Zone)
+                    block.className = 'drop-zone w-12 h-16 sm:w-16 sm:h-20 border-4 border-dashed border-purple-300 bg-white rounded-xl flex items-center justify-center text-3xl font-bold text-purple-600 shadow-inner transition-all';
+                    block.dataset.expected = char;
+                    missingLetters.push(char);
+                } else {
+                    // Huruf yang telah diisi
+                    block.className = 'w-12 h-16 sm:w-16 sm:h-20 bg-purple-500 text-white rounded-xl flex items-center justify-center text-3xl font-bold shadow-md';
+                    block.innerText = char;
+                }
+                wordContainer.appendChild(block);
+            }
+
+            // Tambah huruf gangguan (distractors) supaya lebih mencabar
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const distractorCount = 2; // Tambah 2 huruf rambang
+            for(let i=0; i<distractorCount; i++) {
+                missingLetters.push(alphabet[Math.floor(Math.random() * alphabet.length)]);
+            }
+
+            missingLetters = shuffleArray(missingLetters);
+
+            // Jana pilihan huruf
+            const optionsContainer = document.getElementById('q2-letter-options');
+            optionsContainer.innerHTML = '';
+
+            missingLetters.forEach(char => {
+                const tile = document.createElement('div');
+                tile.className = 'draggable bg-white border-2 border-purple-400 text-purple-600 font-bold text-3xl w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl shadow-md hover:bg-purple-50 transition-colors';
+                tile.innerText = char;
+                tile.dataset.value = char;
+                tile.dataset.type = 'letter';
+                optionsContainer.appendChild(tile);
+            });
+
+            setupDraggables();
+        }
+
+        // --- CUSTOM TOUCH-FRIENDLY DRAG & DROP ENGINE ---
+        let draggedEl = null;
+        let cloneEl = null;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        function setupDraggables() {
+            const draggables = document.querySelectorAll('.draggable');
+            draggables.forEach(el => {
+                el.removeEventListener('pointerdown', handleDragStart);
+                el.addEventListener('pointerdown', handleDragStart);
+            });
+        }
+
+        function handleDragStart(e) {
+            if(e.pointerType === 'touch') e.preventDefault(); 
+
+            if (!e.target.classList.contains('draggable')) return;
+            
+            draggedEl = e.target;
+            playPopSound();
+
+            const rect = draggedEl.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+
+            // Cipta klon untuk visual seretan
+            cloneEl = draggedEl.cloneNode(true);
+            cloneEl.style.position = 'fixed';
+            cloneEl.style.left = `${rect.left}px`;
+            cloneEl.style.top = `${rect.top}px`;
+            cloneEl.style.width = `${rect.width}px`;
+            cloneEl.style.height = `${rect.height}px`;
+            cloneEl.style.zIndex = '1000';
+            cloneEl.style.pointerEvents = 'none'; 
+            cloneEl.style.opacity = '0.9';
+            cloneEl.style.transform = 'scale(1.1)';
+            cloneEl.style.transition = 'transform 0.1s';
+            cloneEl.classList.add('shadow-2xl');
+            
+            document.body.appendChild(cloneEl);
+            
+            // Pudar elemen asal
+            draggedEl.style.opacity = '0.3';
+
+            document.addEventListener('pointermove', handleDragMove, {passive: false});
+            document.addEventListener('pointerup', handleDragEnd);
+        }
+
+        function handleDragMove(e) {
+            if (!cloneEl) return;
+            e.preventDefault(); 
+
+            cloneEl.style.left = `${e.clientX - offsetX}px`;
+            cloneEl.style.top = `${e.clientY - offsetY}px`;
+
+            // Kesan hover
+            cloneEl.style.display = 'none'; 
+            const target = document.elementFromPoint(e.clientX, e.clientY);
+            cloneEl.style.display = 'block';
+
+            document.querySelectorAll('.drop-zone').forEach(dz => dz.classList.remove('drop-zone-active'));
+
+            if (target) {
+                const dropZone = target.closest('.drop-zone');
+                if (dropZone && !dropZone.classList.contains('filled')) {
+                    dropZone.classList.add('drop-zone-active');
+                }
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (!draggedEl) return;
+
+            document.removeEventListener('pointermove', handleDragMove);
+            document.removeEventListener('pointerup', handleDragEnd);
+
+            document.querySelectorAll('.drop-zone').forEach(dz => dz.classList.remove('drop-zone-active'));
+
+            cloneEl.style.display = 'none';
+            const target = document.elementFromPoint(e.clientX, e.clientY);
+            cloneEl.style.display = 'block';
+
+            const dropZone = target ? target.closest('.drop-zone') : null;
+
+            if (dropZone && !dropZone.classList.contains('filled')) {
+                processDrop(draggedEl, dropZone);
+            } else {
+                draggedEl.style.opacity = '1';
+            }
+
+            cloneEl.remove();
+            cloneEl = null;
+            draggedEl = null;
+        }
+
+        // --- VALIDATION & FEEDBACK ---
+        function processDrop(dragEl, dropZone) {
+            const type = dragEl.dataset.type;
+            const value = dragEl.dataset.value;
+            const expected = dropZone.dataset.expected;
+
+            if (value === expected) {
+                // JAWAPAN BETUL
+                if (type === 'word') {
+                    dropZone.innerHTML = '';
+                    const finalBlock = dragEl.cloneNode(true);
+                    finalBlock.style.opacity = '1';
+                    finalBlock.classList.remove('draggable');
+                    finalBlock.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center', 'm-0', 'border-0');
+                    dropZone.appendChild(finalBlock);
+                    dropZone.classList.replace('border-dashed', 'border-solid');
+                    dropZone.classList.replace('border-slate-300', 'border-green-400');
+                    dropZone.classList.replace('bg-slate-50', 'bg-green-50');
+                    dropZone.classList.add('filled');
+                    dragEl.style.display = 'none'; 
+                    
+                    playCorrectSound();
+                    setTimeout(() => showModal(true), 500);
+
+                } else if (type === 'letter') {
+                    dropZone.innerText = value;
+                    dropZone.classList.remove('border-dashed', 'border-purple-300', 'bg-white', 'text-purple-600');
+                    dropZone.classList.add('border-solid', 'border-green-400', 'bg-green-500', 'text-white', 'filled');
+                    dragEl.style.display = 'none'; 
+                    playPopSound();
+                    
+                    q2BlanksFilled++;
+                    if (q2BlanksFilled === q2TotalBlanks) {
+                        playCorrectSound();
+                        setTimeout(() => showModal(true), 500);
+                    }
+                }
+
+            } else {
+                // JAWAPAN SALAH
+                dragEl.style.opacity = '1';
+                triggerShake(dragEl);
+                playWrongSound();
+                setTimeout(() => showModal(false), 300);
+            }
+        }
+
+        // --- MODAL MAKLUM BALAS ---
+        function showModal(isCorrect) {
+            const modal = document.getElementById('feedback-modal');
+            const modalContent = document.getElementById('modal-content');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const btn = document.getElementById('modal-btn');
+
+            modal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-90');
+                modalContent.classList.add('scale-100');
+            }, 10);
+
+            if (isCorrect) {
+                icon.innerText = "🎉";
+                title.innerText = "Tahniah!";
+                title.className = "text-4xl font-extrabold text-green-600 mb-2";
+                desc.innerText = "Bagus! Jawapan anda tepat.";
+                modalContent.className = "bg-white p-8 rounded-3xl shadow-2xl border-4 border-green-400 text-center transform transition-transform duration-300 scale-100";
+                btn.className = "btn-hover py-3 px-8 bg-green-500 text-white rounded-xl text-2xl font-bold shadow-lg";
+                
+                if (currentQuestionIndex === haiwanData.length - 1) {
+                    btn.innerText = "Tamat Kuiz ⭐";
+                    btn.onclick = () => {
+                        hideModal();
+                        showMenu();
+                    };
+                } else {
+                    btn.innerText = "Seterusnya &rarr;";
+                    btn.onclick = () => {
+                        hideModal();
+                        currentQuestionIndex++;
+                        if (currentQuiz === 1) loadQuiz1Question();
+                        else loadQuiz2Question();
+                    };
+                }
+            } else {
+                icon.innerText = "❌";
+                title.innerText = "Ops!";
+                title.className = "text-4xl font-extrabold text-red-500 mb-2";
+                desc.innerText = "Kurang tepat. Sila cuba lagi ya.";
+                modalContent.className = "bg-white p-8 rounded-3xl shadow-2xl border-4 border-red-400 text-center transform transition-transform duration-300 scale-100";
+                btn.innerText = "Cuba Lagi ↺";
+                btn.className = "btn-hover py-3 px-8 bg-red-500 text-white rounded-xl text-2xl font-bold shadow-lg";
+                btn.onclick = hideModal;
+            }
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('feedback-modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        showMenu();
+
+    </script>
+</body>
+</html>
