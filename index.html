@@ -546,6 +546,7 @@
                 title.className = "text-4xl font-extrabold text-green-600 mb-2";
                 desc.innerText = "Bagus! Jawapan anda tepat.";
                 modalContent.className = "bg-white p-8 rounded-3xl shadow-2xl border-4 border-green-400 text-center transform transition-transform duration-300 scale-100";
+                
                 btn.className = "btn-hover py-3 px-8 bg-green-500 text-white rounded-xl text-2xl font-bold shadow-lg";
                 
                 if (currentQuestionIndex === haiwanData.length - 1) {
@@ -555,7 +556,7 @@
                         showMenu();
                     };
                 } else {
-                    btn.innerText = "Seterusnya &rarr;";
+                    btn.innerText = "Seterusnya →";
                     btn.onclick = () => {
                         hideModal();
                         currentQuestionIndex++;
@@ -569,7 +570,9 @@
                 title.className = "text-4xl font-extrabold text-red-500 mb-2";
                 desc.innerText = "Kurang tepat. Sila cuba lagi ya.";
                 modalContent.className = "bg-white p-8 rounded-3xl shadow-2xl border-4 border-red-400 text-center transform transition-transform duration-300 scale-100";
-                btn.innerText = "Cuba Lagi ↺";
+                
+                // PENGUBAHSUAIAN: Pastikan paparan teks konsisten
+                btn.innerHTML = "Cuba Lagi ↺";
                 btn.className = "btn-hover py-3 px-8 bg-red-500 text-white rounded-xl text-2xl font-bold shadow-lg";
                 btn.onclick = hideModal;
             }
